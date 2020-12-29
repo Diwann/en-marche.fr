@@ -294,8 +294,7 @@ class LoadCommitteeData extends Fixture implements DependentFixtureInterface
         $manager->persist($adherent4->followCommittee($committee1));
 
         // Committee 2
-        $manager->persist($adherent6->followCommittee($committee2));
-        $manager->persist($adherent4->followCommittee($committee2));
+        $committee2->addProvisionalSupervisor($adherent6);
 
         // Committee 3
         $manager->persist($membership = $adherent7->superviseCommittee($committee3, \DateTime::createFromFormat('Y-m-d H:i:s', '2017-01-26 16:08:24')));

@@ -99,7 +99,16 @@ class CommitteeAdherentMandateManager
         $this->entityManager->flush();
     }
 
-    private function checkGender(Adherent $adherent): void
+    public function checkAdherentForSupervisorMandate(Adherent $adherent): void
+    {
+        if ($adherent->isMinor()
+            || $adherent->isSupervisor()
+            || $this->electedRepresentativeRepository->hasActiveParliamentaryMandate($adherent)) {
+            $this->throwException('adherent_mandate.committee.provisional_supervisor.not_valid');
+        }
+    }
+
+    public function checkGender(Adherent $adherent): void
     {
         if (!\in_array($adherent->getGender(), Genders::MALE_FEMALE)) {
             $this->throwException(

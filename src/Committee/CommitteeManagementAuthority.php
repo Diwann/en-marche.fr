@@ -35,11 +35,13 @@ class CommitteeManagementAuthority
     {
         $this->manager->approveCommittee($committee);
 
-        $this->mailer->sendMessage(CommitteeApprovalConfirmationMessage::create(
-            $this->manager->getCommitteeCreator($committee),
-            $committee->getCityName(),
-            $this->urlGenerator->generate('app_committee_show', ['slug' => $committee->getSlug()], UrlGeneratorInterface::ABSOLUTE_URL)
-        ));
+        foreach ($committee->getProvisionalSupervisors() as $provisionalSupervisor) {
+            $this->mailer->sendMessage(CommitteeApprovalConfirmationMessage::create(
+                $provisionalSupervisor->getAdherent(),
+                $committee->getCityName(),
+                $this->urlGenerator->generate('app_committee_show', ['slug' => $committee->getSlug()], UrlGeneratorInterface::ABSOLUTE_URL)
+            ));
+        }
     }
 
     public function notifyReferentsForApproval(Committee $committee): void
