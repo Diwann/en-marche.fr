@@ -151,7 +151,27 @@
                     {% set is_demotable_host = is_promotable_host ? false : membership.demotableHost %}
 
                     <tr{{ not is_promotable_host ? ' class="host-member"' : '' }}>
-                        <td class="member-name">{{ member.firstName|default('~')|capitalize }} {{ member.lastNameInitial|default('~') }}</td>
+                        <td class="member-name">
+                            {% if app.user.isSupervisorOf(committee) %}
+                                {% if adherent.isCertified %}
+                                    {{ member.fullName|default('~')|capitalize }}
+                                    {% include('components/_certification_logo.html.twig') %}
+                                    {{ membership.votingCommittee }}
+                                    {% if membership.votingCommittee %}
+                                        <div>
+                                            {{ member.phone|phone_number_format }}
+                                            {{ member.phone ? member.phone|phone_number_format }}
+                                        </div>
+                                        <br>
+                                        <a href="tel:{{ member.phone|phone_number_format }}">
+                                            {{ member.phone|phone_number_format }}
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            {% else %}
+                                {{ member.firstName|default('~')|capitalize }} {{ member.lastNameInitial|default('~') }}
+                            {% endif %}
+                        </td>
                         <td class="member-age">{{ member.age|default('~') }}</td>
                         <td class="member-postal-code">{{ member.postalCode|default('~') }}</td>
                         <td class="member-city-name">{{ member.cityName|default('~') }}</td>

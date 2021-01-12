@@ -10,6 +10,8 @@ use App\Collection\CitizenProjectMembershipCollection;
 use App\Collection\CommitteeMembershipCollection;
 use App\Entity\AdherentCharter\AdherentCharterInterface;
 use App\Entity\AdherentMandate\AbstractAdherentMandate;
+use App\Entity\AdherentMandate\CommitteeAdherentMandate;
+use App\Entity\AdherentMandate\CommitteeMandateQualityEnum;
 use App\Entity\AdherentMandate\TerritorialCouncilAdherentMandate;
 use App\Entity\BoardMember\BoardMember;
 use App\Entity\Filesystem\FilePermissionEnum;
@@ -1837,18 +1839,13 @@ class Adherent implements UserInterface, UserEntityInterface, GeoPointInterface,
         return $this->getMemberships()->countCommitteeHostMemberships() >= 1;
     }
 
-    public function isHostOnly(): bool
-    {
-        return $this->getMemberships()->getCommitteeHostMemberships(CommitteeMembershipCollection::EXCLUDE_SUPERVISORS)->count() >= 1;
-    }
-
     public function isHostOf(Committee $committee): bool
     {
         if (!$membership = $this->getMembershipFor($committee)) {
             return false;
         }
 
-        return $membership->canHostCommittee();
+        return $membership->isHostMember();
     }
 
     public function isCitizenProjectAdministrator(): bool
@@ -1865,18 +1862,20 @@ class Adherent implements UserInterface, UserEntityInterface, GeoPointInterface,
         return $membership->canAdministrateCitizenProject();
     }
 
-    public function isSupervisor(): bool
+    public function isSupervisor(bool $isProvisional = null): bool
     {
-        return $this->getMemberships()->countCommitteeSupervisorMemberships() >= 1;
+        return $this->getSupervisorMandates($isProvisional)->count() > 0;
     }
 
-    public function isSupervisorOf(Committee $committee): bool
+    public function isSupervisorOf(Committee $committee, bool $isProvisional = null): bool
     {
-        if (!$membership = $this->getMembershipFor($committee)) {
-            return false;
-        }
-
-        return $membership->isSupervisor();
+        return $this->adherentMandates->filter(static function (AbstractAdherentMandate $mandate) use ($committee, $isProvisional) {
+            return $mandate instanceof CommitteeAdherentMandate
+                && $mandate->getCommittee() === $committee
+                && CommitteeMandateQualityEnum::SUPERVISOR === $mandate->getQuality()
+                && (null !== $isProvisional ? $mandate->isProvisional() === $isProvisional : true)
+            ;
+        })->count() > 0;
     }
 
     public function isLegislativeCandidate(): bool
@@ -2674,5 +2673,17 @@ class Adherent implements UserInterface, UserEntityInterface, GeoPointInterface,
     public function isProvisionalSupervisor(): bool
     {
         return $this->provisionalSupervisors->count() > 0;
+    }
+
+    public function getSupervisorMandates(bool $isProvisional = null, string $gender = null): Collection
+    {
+        return $this->adherentMandates->filter(static function (AbstractAdherentMandate $mandate) use ($gender, $isProvisional) {
+            return $mandate instanceof CommitteeAdherentMandate
+                && null !== $mandate->getCommittee()
+                && CommitteeMandateQualityEnum::SUPERVISOR === $mandate->getQuality()
+                && (null !== $isProvisional ? $mandate->isProvisional() === $isProvisional : true)
+                && (null !== $gender ? ($mandate->getGender() === $gender) : true)
+            ;
+        });
     }
 }

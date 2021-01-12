@@ -7,11 +7,11 @@ use App\BoardMember\BoardMemberFilter;
 use App\Collection\AdherentCollection;
 use App\Coordinator\CoordinatorManagedAreaUtils;
 use App\Entity\Adherent;
+use App\Entity\AdherentMandate\CommitteeMandateQualityEnum;
 use App\Entity\BoardMember\BoardMember;
 use App\Entity\CitizenProject;
 use App\Entity\City;
 use App\Entity\Committee;
-use App\Entity\CommitteeMembership;
 use App\Entity\District;
 use App\Entity\ElectedRepresentative\ElectedRepresentative;
 use App\Entity\ReferentManagedArea;
@@ -587,13 +587,14 @@ class AdherentRepository extends ServiceEntityRepository implements UserLoaderIn
             ->select('adherent.gender, COUNT(DISTINCT adherent) AS count')
             ->join('adherent.memberships', 'membership')
             ->join('membership.committee', 'committee')
+            ->join('committee.adherentMandates', 'mandate')
             ->join('committee.referentTags', 'tag')
             ->where('tag.id IN (:tags)')
             ->andWhere('committee.status = :status')
-            ->andWhere('membership.privilege = :supervisor')
+            ->andWhere('mandate.adherent = adherent AND mandate.committee IS NOT NULL AND mandate.quality = :supervisor AND mandate.finishAt IS NULL')
             ->setParameter('tags', $referent->getManagedArea()->getTags())
             ->setParameter('status', Committee::APPROVED)
-            ->setParameter('supervisor', CommitteeMembership::COMMITTEE_SUPERVISOR)
+            ->setParameter('supervisor', CommitteeMandateQualityEnum::SUPERVISOR)
             ->groupBy('adherent.gender')
             ->getQuery()
             ->getArrayResult()
@@ -1032,6 +1033,20 @@ SQL;
             ->setParameter('uuid', $uuid)
             ->getQuery()
             ->getArrayResult()
+        ;
+    }
+
+    public function findSupervisors(Committee $committee): array
+    {
+        return $this->createQueryBuilder('a')
+            ->leftJoin('a.adherentMandates', 'am')
+            ->where('am.committee = :committee AND m.quality = :supervisor AND m.finishAt IS NULL')
+            ->setParameters([
+                'committee' => $committee,
+                'supervisor' => CommitteeMandateQualityEnum::SUPERVISOR,
+            ])
+            ->getQuery()
+            ->getResult()
         ;
     }
 }

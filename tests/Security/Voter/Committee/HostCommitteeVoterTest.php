@@ -7,7 +7,6 @@ use App\Entity\Adherent;
 use App\Entity\Committee;
 use App\Security\Voter\AbstractAdherentVoter;
 use App\Security\Voter\Committee\HostCommitteeVoter;
-use Ramsey\Uuid\UuidInterface;
 use Tests\App\Security\Voter\AbstractAdherentVoterTest;
 
 class HostCommitteeVoterTest extends AbstractAdherentVoterTest
@@ -43,12 +42,12 @@ class HostCommitteeVoterTest extends AbstractAdherentVoterTest
         $this->assertGrantedForAdherent(true, true, $adherent, CommitteePermissions::HOST, $committee);
     }
 
-    public function testAdherentCanHostNotApprovedCommitteeIfCreator()
+    public function testAdherentCannotHostNotApprovedCommitteeIfCreator()
     {
         $committee = $this->getCommitteeMock(false);
         $adherent = $this->getAdherentMock(false, $committee, true);
 
-        $this->assertGrantedForAdherent(true, true, $adherent, CommitteePermissions::HOST, $committee);
+        $this->assertGrantedForAdherent(false, true, $adherent, CommitteePermissions::HOST, $committee);
     }
 
     public function testAdherentCannotHostApprovedCommittee()
@@ -88,17 +87,6 @@ class HostCommitteeVoterTest extends AbstractAdherentVoterTest
                 ->with($committee)
                 ->willReturn($isSupervisor)
             ;
-            if (!$isSupervisor) {
-                $adherent->expects($this->once())
-                    ->method('getUuid')
-                    ->willReturn($uuid = $this->createMock(UuidInterface::class))
-                ;
-                $committee->expects($this->once())
-                    ->method('isCreatedBy')
-                    ->with($uuid)
-                    ->willReturn($isCreator)
-                ;
-            }
         } else {
             $adherent->expects($this->never())
                 ->method('isSupervisorOf')

@@ -68,7 +68,7 @@ class CommitteeMembership implements UuidEntityInterface
     /**
      * The privilege given to the member in the committee.
      *
-     * Privilege is either HOST, FOLLOWER or SUPERVISOR
+     * Privilege is either HOST or FOLLOWER
      *
      * @var string
      *

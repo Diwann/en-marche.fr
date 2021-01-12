@@ -89,6 +89,7 @@ delegated_deputy: député délégué
 senator: sénateur
 delegated_senator: sénateur délégué
 committee_supervisor: animateur
+committee_provisional_supervisor: animateur provisoire
 supervisor: animateur
 committee_host: co-animateur
 host: co-animateur

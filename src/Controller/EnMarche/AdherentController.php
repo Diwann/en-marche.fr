@@ -15,7 +15,6 @@ use App\Controller\CanaryControllerTrait;
 use App\Entity\Adherent;
 use App\Entity\CitizenProject;
 use App\Entity\Committee;
-use App\Entity\CommitteeMembership;
 use App\Entity\Event;
 use App\Entity\TurnkeyProject;
 use App\Event\EventRegistrationManager;
@@ -333,10 +332,7 @@ class AdherentController extends Controller
     public function listCommitteesAlAction(CommitteeRepository $repository): Response
     {
         return $this->render('adherent/list_my_committees_al.html.twig', [
-            'committees' => $repository->findCommitteesByPrivilege(
-                $this->getUser(),
-                CommitteeMembership::getHostPrivileges()
-            ),
+            'committees' => $repository->findCommitteesForHost($this->getUser()),
         ]);
     }
 
