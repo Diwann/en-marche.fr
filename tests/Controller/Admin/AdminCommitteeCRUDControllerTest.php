@@ -24,7 +24,7 @@ class AdminCommitteeCRUDControllerTest extends WebTestCase
 
     private $committeeRepository;
 
-    public function testApproveAction(): void
+    public function testApproveCommitteeAction(): void
     {
         $committee = $this->committeeRepository->findOneByUuid(LoadCommitteeData::COMMITTEE_2_UUID);
 
@@ -49,6 +49,8 @@ class AdminCommitteeCRUDControllerTest extends WebTestCase
 
         $this->client->enableProfiler();
         $committee = $this->committeeRepository->findOneByUuid(LoadCommitteeData::COMMITTEE_2_UUID);
+
+        $this->assertFalse($committee->isApproved());
 
         $this->approveCommittee($committee);
 

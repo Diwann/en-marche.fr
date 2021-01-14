@@ -591,7 +591,6 @@ class CommitteeManager
 
         if (null !== $existingMandate) {
             $committee->removeAdherentMandate($existingMandate);
-            $this->unfollowCommittee($existingMandate->getAdherent(), $committee);
         }
 
         $mandate = new CommitteeAdherentMandate(
