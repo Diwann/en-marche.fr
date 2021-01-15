@@ -381,6 +381,9 @@ class LoadCommitteeData extends Fixture implements DependentFixtureInterface
             $manager->persist($this->getReference('adherent-'.$index)->followCommittee($committee15, new \DateTime('-2 months')));
         }
 
+        // Committee 16
+        $committee16->addProvisionalSupervisor($adherent4);
+
         $manager->flush();
     }
 

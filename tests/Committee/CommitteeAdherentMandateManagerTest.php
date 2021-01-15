@@ -219,11 +219,12 @@ class CommitteeAdherentMandateManagerTest extends TestCase
         $this->assertNotNull($mandate->getFinishAt());
     }
 
-    public function testCheckGenderIfIncorrectGender()
+    public function testCannotUpdateSupervisorProvisionalMandateIfIncorrectGender()
     {
         $this->expectException(CommitteeAdherentMandateException::class);
 
         $adherent = $this->createAdherent(Genders::OTHER);
+        $committee = $this->createCommittee();
 
         $this->translator
             ->expects($this->once())
@@ -231,14 +232,15 @@ class CommitteeAdherentMandateManagerTest extends TestCase
             ->with('adherent_mandate.committee.not_valid_gender', $this->anything())
         ;
 
-        $this->mandateManager->checkGender($adherent);
+        $this->mandateManager->updateSupervisorProvisionalMandate($adherent, $committee);
     }
 
-    public function testCheckAdherentForSupervisorMandateIfMinor()
+    public function testCannotUpdateSupervisorProvisionalMandateIfMinor()
     {
         $this->expectException(CommitteeAdherentMandateException::class);
 
         $adherent = $this->createAdherent(Genders::MALE, '2005-04-04');
+        $committee = $this->createCommittee();
 
         $this->translator
             ->expects($this->once())
@@ -246,14 +248,15 @@ class CommitteeAdherentMandateManagerTest extends TestCase
             ->with('adherent_mandate.committee.provisional_supervisor.not_valid', $this->anything())
         ;
 
-        $this->mandateManager->checkAdherentForSupervisorMandate($adherent);
+        $this->mandateManager->updateSupervisorProvisionalMandate($adherent, $committee);
     }
 
-    public function testCheckAdherentForSupervisorMandateIfHasActiveParliamentaryMandate()
+    public function testCannotUpdateSupervisorProvisionalMandateIfHasActiveParliamentaryMandate()
     {
         $this->expectException(CommitteeAdherentMandateException::class);
 
         $adherent = $this->createAdherent(Genders::MALE);
+        $committee = $this->createCommittee();
 
         $this->translator
             ->expects($this->once())
@@ -267,7 +270,7 @@ class CommitteeAdherentMandateManagerTest extends TestCase
             ->willReturn(true)
         ;
 
-        $this->mandateManager->checkAdherentForSupervisorMandate($adherent);
+        $this->mandateManager->updateSupervisorProvisionalMandate($adherent, $committee);
     }
 
     private function createAdherent(string $gender = Genders::MALE, string $birthday = null): Adherent

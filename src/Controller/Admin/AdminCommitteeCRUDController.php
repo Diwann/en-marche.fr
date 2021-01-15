@@ -3,7 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Address\PostAddressFactory;
-use App\Committee\ApproveCommitteeCommand;
+use App\Committee\CommitteeCommand;
 use App\Committee\CommitteeManagementAuthority;
 use App\Committee\MultipleReferentsFoundException;
 use App\Entity\Adherent;
@@ -32,8 +32,8 @@ class AdminCommitteeCRUDController extends CRUDController
     ): Response {
         $this->admin->checkAccess('approve');
 
-        /** @var ApproveCommitteeCommand $command */
-        $command = ApproveCommitteeCommand::constructFromCommittee($committee);
+        /** @var CommitteeCommand $command */
+        $command = CommitteeCommand::createFromCommittee($committee);
         $form = $this->createForm(ApproveCommitteeCommandType::class, $command, [
             'validation_groups' => ['Default', 'with_provisional_supervisors'],
         ]);

@@ -3,7 +3,6 @@
 namespace App\Form\Admin;
 
 use App\Address\Address;
-use App\Committee\ApproveCommitteeCommand;
 use App\Committee\CommitteeCommand;
 use App\Form\AddressType;
 use App\Form\AdherentIdType;
@@ -55,7 +54,7 @@ class ApproveCommitteeCommandType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => ApproveCommitteeCommand::class,
+            'data_class' => CommitteeCommand::class,
         ]);
     }
 }

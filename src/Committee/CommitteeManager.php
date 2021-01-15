@@ -9,7 +9,6 @@ use App\Committee\Event\UnfollowCommitteeEvent;
 use App\Coordinator\Filter\CommitteeFilter;
 use App\Entity\Adherent;
 use App\Entity\AdherentMandate\CommitteeAdherentMandate;
-use App\Entity\AdherentMandate\CommitteeMandateQualityEnum;
 use App\Entity\Committee;
 use App\Entity\CommitteeFeedItem;
 use App\Entity\CommitteeMembership;
@@ -257,13 +256,13 @@ class CommitteeManager
     public function approveCommittee(Committee $committee, bool $flush = true): void
     {
         $committee->approved();
-        $this->updateSupervisorProvisionalMandates($committee);
 
         if ($flush) {
             $this->entityManager->flush();
         }
 
         $this->dispatcher->dispatch(new CommitteeEvent($committee), Events::COMMITTEE_UPDATED);
+        $this->dispatcher->dispatch(new CommitteeEvent($committee), Events::COMMITTEE_APPROVED);
     }
 
     /**
@@ -568,47 +567,5 @@ class CommitteeManager
         }
 
         $this->dispatcher->dispatch(new FollowCommitteeEvent($adherent), UserEvents::USER_UPDATE_COMMITTEE_PRIVILEGE);
-    }
-
-    public function updateSupervisorProvisionalMandates(Committee $committee): void
-    {
-        foreach ($committee->getProvisionalSupervisors() as $provisionalSupervisor) {
-            $this->updateSupervisorProvisionalMandate($provisionalSupervisor->getAdherent(), $committee);
-        }
-    }
-
-    public function updateSupervisorProvisionalMandate(Adherent $adherent, Committee $committee): void
-    {
-        $this->mandateManager->checkGender($adherent);
-
-        $existingMandate = $committee->getSupervisorMandate(true, $adherent->getGender());
-
-        if (null !== $existingMandate && $adherent === $existingMandate->getAdherent()) {
-            return;
-        }
-
-        $this->mandateManager->checkAdherentForSupervisorMandate($adherent);
-
-        if (null !== $existingMandate) {
-            $committee->removeAdherentMandate($existingMandate);
-        }
-
-        $mandate = new CommitteeAdherentMandate(
-            $adherent,
-            $adherent->getGender(),
-            $committee,
-            new \DateTime(),
-            CommitteeMandateQualityEnum::SUPERVISOR,
-            true
-        );
-
-        $this->entityManager->persist($mandate);
-
-        $committee->addAdherentMandate($mandate);
-
-        $this->followCommittee($adherent, $committee);
-
-        $this->entityManager->persist($mandate);
-        $this->entityManager->flush();
     }
 }

@@ -6,6 +6,7 @@ use App\Committee\Exception\CommitteeAdherentMandateException;
 use App\Entity\Adherent;
 use App\Entity\AdherentMandate\AbstractAdherentMandate;
 use App\Entity\AdherentMandate\CommitteeAdherentMandate;
+use App\Entity\AdherentMandate\CommitteeMandateQualityEnum;
 use App\Entity\Committee;
 use App\Repository\AdherentMandate\CommitteeAdherentMandateRepository;
 use App\Repository\ElectedRepresentative\ElectedRepresentativeRepository;
@@ -99,7 +100,38 @@ class CommitteeAdherentMandateManager
         $this->entityManager->flush();
     }
 
-    public function checkAdherentForSupervisorMandate(Adherent $adherent): void
+    public function updateSupervisorProvisionalMandate(Adherent $adherent, Committee $committee): void
+    {
+        $this->checkGender($adherent);
+
+        $existingMandate = $committee->getSupervisorMandate(true, $adherent->getGender());
+
+        if (null !== $existingMandate && $adherent === $existingMandate->getAdherent()) {
+            return;
+        }
+
+        $this->checkAdherentForSupervisorMandate($adherent);
+
+        if (null !== $existingMandate) {
+            $committee->removeAdherentMandate($existingMandate);
+        }
+
+        $mandate = new CommitteeAdherentMandate(
+            $adherent,
+            $adherent->getGender(),
+            $committee,
+            new \DateTime(),
+            CommitteeMandateQualityEnum::SUPERVISOR,
+            true
+        );
+
+        $committee->addAdherentMandate($mandate);
+
+        $this->entityManager->persist($mandate);
+        $this->entityManager->flush();
+    }
+
+    private function checkAdherentForSupervisorMandate(Adherent $adherent): void
     {
         if ($adherent->isMinor()
             || $adherent->isSupervisor()
@@ -108,7 +140,7 @@ class CommitteeAdherentMandateManager
         }
     }
 
-    public function checkGender(Adherent $adherent): void
+    private function checkGender(Adherent $adherent): void
     {
         if (!\in_array($adherent->getGender(), Genders::MALE_FEMALE)) {
             $this->throwException(
